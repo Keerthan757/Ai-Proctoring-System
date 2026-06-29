@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Login — AI Proctoring System{% endblock %}
+
+{% block body %}
+<div class="login-container">
+    <div class="login-card">
+        <!-- Logo -->
+        <div class="login-logo">
+            <span class="logo-icon">🛡️</span>
+            <h1>AI Proctoring System</h1>
+            <p>Secure Exam Monitoring Platform</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for msg in messages %}
+        <div class="flash-error">{{ msg }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Tabs -->
+        <div class="tab-group">
+            <div class="tab-indicator" id="tabIndicator"></div>
+            <div class="tab active" id="tabStudent" onclick="switchTab('student')">Student</div>
+            <div class="tab" id="tabAdmin" onclick="switchTab('admin')">Admin</div>
+        </div>
+
+        <!-- Student Form -->
+        <form class="login-form active" id="formStudent" action="/login/student" method="POST">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" class="input-field" id="name" name="name" placeholder="Enter your full name" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="regno">Register Number</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🆔</span>
+                    <input type="text" class="input-field" id="regno" name="regno" placeholder="e.g. 2024CS001" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">✉️</span>
+                    <input type="email" class="input-field" id="email" name="email" placeholder="student@university.edu" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">📘</span>
+                    <input type="text" class="input-field" id="subject" name="subject" placeholder="e.g. Data Structures" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success">Start Exam →</button>
+        </form>
+
+        <!-- Admin Form -->
+        <form class="login-form" id="formAdmin" action="/login/admin" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔑</span>
+                    <input type="text" class="input-field" id="username" name="username" placeholder="Admin username" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" class="input-field" id="password" name="password" placeholder="Enter password" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword()" id="pwToggle" aria-label="Toggle password visibility">👁️</button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Access Panel →</button>
+        </form>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            &copy; 2026 AI Proctoring System. All rights reserved.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    /**
+     * Switch between Student and Admin login tabs.
+     * @param {string} tab - 'student' or 'admin'
+     */
+    function switchTab(tab) {
+        const indicator = document.getElementById('tabIndicator');
+        const tabStudent = document.getElementById('tabStudent');
+        const tabAdmin = document.getElementById('tabAdmin');
+        const formStudent = document.getElementById('formStudent');
+        const formAdmin = document.getElementById('formAdmin');
+
+        if (tab === 'admin') {
+            indicator.classList.add('admin');
+            tabAdmin.classList.add('active');
+            tabStudent.classList.remove('active');
+            formAdmin.classList.add('active');
+            formStudent.classList.remove('active');
+        } else {
+            indicator.classList.remove('admin');
+            tabStudent.classList.add('active');
+            tabAdmin.classList.remove('active');
+            formStudent.classList.add('active');
+            formAdmin.classList.remove('active');
+        }
+    }
+
+    /**
+     * Toggle password field visibility.
+     */
+    function togglePassword() {
+        const pw = document.getElementById('password');
+        const btn = document.getElementById('pwToggle');
+        if (pw.type === 'password') {
+            pw.type = 'text';
+            btn.textContent = '🙈';
+        } else {
+            pw.type = 'password';
+            btn.textContent = '👁️';
+        }
+    }
+</script>
+{% endblock %}
