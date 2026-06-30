@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Exam Dashboard — AI Proctoring System{% endblock %}
+
+{% block body %}
+<!-- Header Bar -->
+<header class="header-bar">
+    <div class="header-left">
+        <div class="header-logo">
+            <span class="logo-emoji">🛡️</span>
+            <span>AI Proctor</span>
+        </div>
+        <span class="admin-badge">Live Session</span>
+    </div>
+
+    <div class="header-center">
+        <div class="rec-badge">
+            <span class="rec-dot"></span>
+            <span>Proctoring Active</span>
+        </div>
+        <div class="timer" id="timer">00:00:00</div>
+    </div>
+
+    <div class="header-right">
+        <div class="user-badge">
+            <div class="avatar">{{ student.name[0] | upper }}</div>
+            <span>{{ student.name }} ({{ student.regno }})</span>
+        </div>
+        <button onclick="stopExam()" class="btn-logout"
+            style="border-color: var(--danger); color: var(--danger); font-weight: 600; font-size: 13px;">🛑 End
+            Exam</button>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content pt-80">
+    <!-- Video Feed -->
+    <div class="video-section">
+        <div class="video-container" style="position: relative;">
+            <div class="video-header">
+                <div class="video-title">
+                    <span class="live-dot"></span>
+                    Live Camera Feed
+                </div>
+            </div>
+            <!-- Loading overlay -->
+            <div id="camera-loading" style="position: absolute; top: 49px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: #0b0f19; color: var(--text-secondary); font-size: 14px; font-weight: 500; z-index: 2; flex-direction: column; gap: 12px;">
+                <span style="width: 28px; height: 28px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></span>
+                <span>Connecting to camera...</span>
+            </div>
+            <video id="webcam" autoplay playsinline muted class="video-feed" style="transform: scaleX(-1); z-index: 1; position: relative;"></video>
+        </div>
+    </div>
+
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+
+        <!-- Status Card -->
+        <div id="statusCard" class="stat-card"
+            style="padding: 24px; text-align: center; justify-content: center; flex-direction: column;">
+            <div
+                style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 6px;">
+                Current Status</div>
+            <div id="status" style="font-size: 24px; font-weight: 700; color: var(--text-primary);">Connecting...</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-left">
+                <div class="stat-icon">👥</div>
+                <span class="stat-label">Faces Detected</span>
+            </div>
+            <span class="stat-value" id="faces">0</span>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-left">
+                <div class="stat-icon">👁️</div>
+                <span class="stat-label">Eye Blinks</span>
+            </div>
+            <span class="stat-value" id="blinks">0</span>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-left">
+                <div class="stat-icon">👀</div>
+                <span class="stat-label">Gaze Direction</span>
+            </div>
+            <span class="stat-value" id="gaze">Center</span>
+        </div>
+
+        <!-- Focus Card -->
+        <div class="stat-card focus-card">
+            <div class="focus-row">
+                <div class="stat-left">
+                    <div class="stat-icon">🎯</div>
+                    <span class="stat-label">Focus Level</span>
+                </div>
+                <span class="stat-value" id="focus">100%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-bar" id="focus-bar" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- Export Report Button -->
+        <button class="btn-export" onclick="downloadReport()">📄 Export Report</button>
+    </div>
+
+    <!-- Hidden Canvas -->
+    <canvas id="capture-canvas" style="display: none;"></canvas>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+{% endblock %}

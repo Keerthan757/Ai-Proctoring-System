@@ -29,26 +29,20 @@
 </header>
 
 <!-- Main Content -->
-<main class="main-content admin-content" style="max-width: 1200px; margin: 0 auto; padding-top: 80px;">
+<main class="main-content admin-content pt-80">
 
     <!-- Section Title -->
-    <div class="section-header"
-        style="width: 100%; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-size: 20px; font-weight: 600; color: var(--text-primary);">Student Exam Reports & Violations
-            Analysis</h2>
-        <button class="btn-export" onclick="loadReports()"
-            style="width: auto; padding: 8px 16px; margin: 0; font-size: 13px;">🔄 Refresh List</button>
+    <div class="section-header mb-20" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 20px; font-weight: 600; color: var(--text-primary);">Student Exam Reports & Violations Analysis</h2>
+        <button class="btn-export w-auto m-0" onclick="loadReports()" style="font-size: 13px; padding: 8px 16px;">🔄 Refresh List</button>
     </div>
 
     <!-- Reports Table Container -->
-    <div class="reports-container"
-        style="width: 100%; background: var(--surface-1); border: 1px solid var(--surface-3); border-radius: var(--radius-card); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 30px;">
+    <div class="reports-container mb-30 shadow-sm" style="width: 100%; background: var(--surface-1); border: 1px solid var(--surface-3); border-radius: var(--radius-card); overflow: hidden;">
         <div style="overflow-x: auto;">
-            <table class="reports-table"
-                style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <table class="reports-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
                 <thead>
-                    <tr
-                        style="background: var(--surface-2); border-bottom: 1px solid var(--surface-3); color: var(--text-secondary); font-weight: 600;">
+                    <tr style="background: var(--surface-2); border-bottom: 1px solid var(--surface-3); color: var(--text-secondary); font-weight: 600;">
                         <th style="padding: 14px 18px;">Time</th>
                         <th style="padding: 14px 18px;">Student</th>
                         <th style="padding: 14px 18px;">Reg No</th>
@@ -62,7 +56,7 @@
                 </thead>
                 <tbody id="reports-tbody">
                     <tr>
-                        <td colspan="9" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                        <td colspan="9" class="text-center" style="padding: 30px; color: var(--text-muted);">
                             Loading student reports...
                         </td>
                     </tr>
@@ -72,26 +66,19 @@
     </div>
 
     <!-- Modal for Screenshots -->
-    <div id="screenshot-modal" class="modal"
-        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 24px;">
-        <div class="modal-content"
-            style="background: var(--surface-1); border: 1px solid var(--surface-3); border-radius: var(--radius-card); max-width: 800px; width: 100%; box-shadow: 0 20px 48px rgba(0,0,0,0.15); display: flex; flex-direction: column; max-height: 85vh; overflow: hidden; animation: fadeUp 0.3s ease;">
+    <div id="screenshot-modal" class="modal">
+        <div class="modal-content">
             <!-- Modal Header -->
-            <div class="modal-header"
-                style="padding: 16px 20px; border-bottom: 1px solid var(--surface-3); display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-size: 16px; font-weight: 600;" id="modal-student-name">Student Verification Screenshots
-                </h3>
-                <button onclick="closeModal()"
-                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            <div class="modal-header">
+                <h3 id="modal-student-name">Student Verification Screenshots</h3>
+                <button onclick="closeModal()" class="modal-close">&times;</button>
             </div>
             <!-- Modal Body -->
-            <div class="modal-body" style="padding: 20px; overflow-y: auto; flex: 1;">
-                <div id="screenshots-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+            <div class="modal-body">
+                <div id="screenshots-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
                     <!-- Screenshots loaded via JS -->
                 </div>
-                <div id="no-screenshots"
-                    style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
+                <div id="no-screenshots" class="text-center" style="display: none; padding: 40px; color: var(--text-muted);">
                     No screenshots captured for this student.
                 </div>
             </div>
@@ -123,7 +110,7 @@
             if (reports.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                        <td colspan="9" class="text-center" style="padding: 30px; color: var(--text-muted);">
                              No exam reports found.
                         </td>
                     </tr>
@@ -226,6 +213,7 @@
         }
     }
 
+    // Close modal
     function closeModal() {
         document.getElementById('screenshot-modal').style.display = 'none';
     }

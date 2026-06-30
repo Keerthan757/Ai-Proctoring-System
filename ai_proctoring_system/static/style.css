@@ -1160,6 +1160,84 @@ video {
 }
 
 /* ============================================
+   MODALS & UTILITIES
+   ============================================ */
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.modal-content {
+    background: var(--surface-1);
+    border: 1px solid var(--surface-3);
+    border-radius: var(--radius-card);
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 20px 48px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    overflow: hidden;
+    animation: fadeUp 0.3s ease;
+}
+
+.modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--surface-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--danger);
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Custom utility helpers */
+.w-auto { width: auto !important; }
+.m-0 { margin: 0 !important; }
+.mb-20 { margin-bottom: 20px !important; }
+.mb-30 { margin-bottom: 30px !important; }
+.p-24 { padding: 24px !important; }
+.text-center { text-align: center !important; }
+.shadow-sm { box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important; }
+.d-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-span-2 { grid-column: span 2; }
+.gap-16 { gap: 16px !important; }
+.flex-column { flex-direction: column !important; }
+.pt-80 { padding-top: 80px !important; }
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 
@@ -1254,5 +1332,11 @@ video {
 
     .header-logo span {
         display: none;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }

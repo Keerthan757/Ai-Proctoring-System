@@ -7,34 +7,69 @@ const video = document.getElementById('webcam');
 const canvas = document.getElementById('capture-canvas');
 const ctx = canvas.getContext('2d');
 
-// Request user camera access
-navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+const cameraLoading = document.getElementById('camera-loading');
+
+// Request user camera access with robust fallback constraints
+const constraints = {
+    video: {
+        width: { ideal: 640 },
+        height: { ideal: 480 }
+    }
+};
+
+navigator.mediaDevices.getUserMedia(constraints)
     .then(stream => {
+        console.log("Camera access granted, initializing video tracks...");
+
         const startCapturing = () => {
+            if (cameraLoading) {
+                cameraLoading.style.display = 'none';
+            }
             if (!window.captureInterval) {
                 console.log("Starting frame capture...");
-                window.captureInterval = setInterval(captureAndSendFrame, 500); // 2 frames per second is highly efficient & reduces server CPU/RAM load
+                window.captureInterval = setInterval(captureAndSendFrame, 500); // 2 frames per second
             }
         };
 
-        // Attach listeners BEFORE assigning srcObject to prevent missing the event
-        video.addEventListener('loadedmetadata', startCapturing);
-        video.addEventListener('play', startCapturing);
-
-        video.srcObject = stream;
-        
-        // Play the video explicitly to guarantee initialization
-        video.play().then(startCapturing).catch(err => {
-            console.warn("Video play promise failed, waiting for metadata:", err);
+        // Event listeners to hide loading overlay and start capturing
+        video.addEventListener('loadedmetadata', () => {
+            console.log("Video metadata loaded. Resolution:", video.videoWidth, "x", video.videoHeight);
+            startCapturing();
+        });
+        video.addEventListener('playing', () => {
+            console.log("Video stream is now playing.");
+            startCapturing();
         });
 
-        // Fallback: If metadata is already loaded
-        if (video.readyState >= 1) {
+        // Assign stream
+        video.srcObject = stream;
+        
+        // Force play to ensure browser plays it
+        video.play()
+            .then(() => {
+                console.log("Webcam video.play() resolved successfully.");
+                startCapturing();
+            })
+            .catch(err => {
+                console.warn("Video play promise was blocked or failed, waiting for metadata:", err);
+            });
+
+        // Immediate fallback check
+        if (video.readyState >= 2) { // HAVE_CURRENT_DATA or higher
             startCapturing();
         }
     })
     .catch(err => {
         console.error("Camera access failed:", err);
+        if (cameraLoading) {
+            cameraLoading.innerHTML = `
+                <span style="font-size: 24px;">🛑</span>
+                <span style="font-weight: 600; color: var(--danger);">Webcam Access Failed</span>
+                <span style="font-size: 12px; text-align: center; max-width: 280px; color: var(--text-muted); margin-top: 4px;">
+                    ${err.name === "NotReadableError" ? "Camera is already in use by another application (OBS, Zoom, etc.)" : err.message || "Please ensure your camera is connected and you have granted permission."}
+                </span>
+            `;
+        }
         alert("Camera Access Required: Please allow camera access in your browser to take the proctored exam.");
     });
 

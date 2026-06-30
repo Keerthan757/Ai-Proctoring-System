@@ -11,7 +11,7 @@ blink detection, drowsiness monitoring, and multi-face detection.
 from flask import (
     Flask, Response, render_template, jsonify,
     request, redirect, url_for, send_file,
-    session, flash
+    session, flash, send_from_directory
 )
 import cv2
 import mediapipe as mp
@@ -91,17 +91,8 @@ atexit.register(cam_manager.release)
 # -------------------------
 # Thread-Safe State & Memory Map
 # -------------------------
-state_lock = threading.Lock()
-
-state = {
-    'faces': 0,
-    'blinks': 0,
-    'focus': 100,
-    'gaze': 'Center',
-    'status': 'Waiting',
-    'look_away_count': 0,
-    'cheated': False
-}
+student_states_lock = threading.Lock()
+student_states = {}
 
 student_details_lock = threading.Lock()
 student_details = {}
@@ -118,17 +109,37 @@ def get_student_details(regno):
     with student_details_lock:
         return student_details.get(regno, {})
 
+def remove_student(regno):
+    """Remove student details and state from memory mapping."""
+    with student_details_lock:
+        if regno in student_details:
+            del student_details[regno]
+    with student_states_lock:
+        if regno in student_states:
+            del student_states[regno]
 
-def update_state(**kwargs):
-    """Atomically update one or more keys in the shared state dict."""
-    with state_lock:
-        state.update(kwargs)
+def get_default_state():
+    return {
+        'faces': 0, 'blinks': 0, 'focus': 100, 'gaze': 'Center', 'status': 'Waiting',
+        'look_away_count': 0, 'cheated': False,
+        'blink_counter': 0, 'closed_frames': 0, 'focus_frames': 0, 'total_frames': 0,
+        'last_gaze': 'Center'
+    }
+
+def update_state(regno, **kwargs):
+    """Atomically update one or more keys in the student's state dict."""
+    with student_states_lock:
+        if regno not in student_states:
+            student_states[regno] = get_default_state()
+        student_states[regno].update(kwargs)
 
 
-def get_state():
-    """Return a snapshot copy of the shared state dict."""
-    with state_lock:
-        return dict(state)
+def get_state(regno):
+    """Return a snapshot copy of the student's state dict."""
+    with student_states_lock:
+        if regno not in student_states:
+            student_states[regno] = get_default_state()
+        return dict(student_states[regno])
 
 
 # -------------------------
@@ -147,14 +158,8 @@ JPEG_QUALITY = 85       # JPEG encoding quality (0-100)
 
 
 # -------------------------
-# Tracking Variables
+# Tracking Variables (Moved to per-user state)
 # -------------------------
-blink_counter = 0
-closed_frames = 0
-focus_frames = 0
-total_frames = 0
-look_away_count = 0
-last_gaze = 'Center'
 
 
 # -------------------------
@@ -216,7 +221,7 @@ def save_or_update_report(regno):
     if regno == 'unknown':
         return
     details = get_student_details(regno)
-    current_state = get_state()
+    current_state = get_state(regno)
 
     # The CSV reports in exports directory will have a standard structure
     filename = f'report_{regno}.csv'
@@ -247,23 +252,22 @@ def save_or_update_report(regno):
         print(f"[Proctoring] Failed to write report file: {e}")
 
 
-def reset_proctoring_state():
+def reset_proctoring_state(regno):
     """Reset all proctoring tracking states to default clean values."""
-    global blink_counter, closed_frames, focus_frames, total_frames, look_away_count, last_gaze
-    blink_counter = 0
-    closed_frames = 0
-    focus_frames = 0
-    total_frames = 0
-    look_away_count = 0
-    last_gaze = 'Center'
     update_state(
+        regno,
         faces=0,
         blinks=0,
         focus=100,
         gaze='Center',
         status='Waiting',
         look_away_count=0,
-        cheated=False
+        cheated=False,
+        blink_counter=0,
+        closed_frames=0,
+        focus_frames=0,
+        total_frames=0,
+        last_gaze='Center'
     )
 
 
@@ -275,7 +279,13 @@ face_mesh_lock = threading.Lock()
 
 def analyze_single_frame(frame, regno='unknown'):
     """Analyze a single video frame for face count, gaze direction, and eye blinks."""
-    global blink_counter, closed_frames, focus_frames, total_frames, look_away_count, last_gaze
+    st = get_state(regno)
+    blink_counter = st['blink_counter']
+    closed_frames = st['closed_frames']
+    focus_frames = st['focus_frames']
+    total_frames = st['total_frames']
+    look_away_count = st['look_away_count']
+    last_gaze = st['last_gaze']
 
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     face_mesh = cam_manager.get_face_mesh()
@@ -287,6 +297,7 @@ def analyze_single_frame(frame, regno='unknown'):
     gaze = 'Center'
 
     if results.multi_face_landmarks:
+        status = 'Focused'
         faces = len(results.multi_face_landmarks)
         face = results.multi_face_landmarks[0]
         h, w, _ = frame.shape
@@ -337,20 +348,32 @@ def analyze_single_frame(frame, regno='unknown'):
             status = 'Multiple Faces'
 
         update_state(
+            regno,
             faces=faces,
             gaze=gaze,
             status=status,
             blinks=blink_counter,
             look_away_count=look_away_count,
-            cheated=(look_away_count > 20 or blink_counter > 300)
+            cheated=(look_away_count > 20 or blink_counter > 300),
+            blink_counter=blink_counter,
+            closed_frames=closed_frames,
+            focus_frames=focus_frames,
+            total_frames=total_frames,
+            last_gaze=last_gaze
         )
     else:
         update_state(
+            regno,
             faces=0,
             status='No Face',
             gaze='Center',
             look_away_count=look_away_count,
-            cheated=(look_away_count > 20 or blink_counter > 300)
+            cheated=(look_away_count > 20 or blink_counter > 300),
+            blink_counter=blink_counter,
+            closed_frames=closed_frames,
+            focus_frames=focus_frames,
+            total_frames=total_frames,
+            last_gaze=last_gaze
         )
 
     # --- Focus Percentage ---
@@ -358,7 +381,7 @@ def analyze_single_frame(frame, regno='unknown'):
     if status == 'Focused':
         focus_frames += 1
     if total_frames > 0:
-        update_state(focus=int((focus_frames / total_frames) * 100))
+        update_state(regno, focus=int((focus_frames / total_frames) * 100), focus_frames=focus_frames, total_frames=total_frames)
 
     # --- Screenshot Detection / Saving ---
     if status in ['Drowsy', 'Multiple Faces', 'No Face']:
@@ -410,11 +433,12 @@ def index():
 @app.route('/login/student', methods=['POST'])
 def student_login():
     """Handle student login form submission."""
-    reset_proctoring_state()
+    regno = request.form['regno']
+    reset_proctoring_state(regno)
     session['role'] = 'student'
     session['student'] = {
         'name': request.form['name'],
-        'regno': request.form['regno'],
+        'regno': regno,
         'email': request.form['email'],
         'subject': request.form['subject']
     }
@@ -467,7 +491,17 @@ def video():
 @app.route('/stats')
 def stats():
     """Return current proctoring state as JSON."""
-    return jsonify(get_state())
+    if session.get('role') == 'admin':
+        with student_states_lock:
+            # For the simple admin UI, return the first active student's state
+            for regno, st in student_states.items():
+                if regno != 'unknown':
+                    return jsonify(dict(st))
+            return jsonify(get_default_state())
+    else:
+        student_data = session.get('student', {})
+        regno = student_data.get('regno', 'unknown')
+        return jsonify(get_state(regno))
 
 
 @app.route('/process_frame', methods=['POST'])
@@ -485,14 +519,28 @@ def process_frame():
         regno = student_data.get('regno', 'unknown')
         analyze_single_frame(frame, regno)
 
-    return jsonify(get_state())
+    student_data = session.get('student', {})
+    regno = student_data.get('regno', 'unknown')
+    return jsonify(get_state(regno))
 
 
 @app.route('/export')
 def export():
     """Export the current proctoring snapshot to a timestamped CSV file."""
-    current_state = get_state()
-    student_data = session.get('student', {})
+    if session.get('role') == 'admin':
+        regno = 'unknown'
+        student_data = {}
+        with student_states_lock:
+            for r, st in student_states.items():
+                if r != 'unknown':
+                    regno = r
+                    student_data = get_student_details(regno)
+                    break
+        current_state = get_state(regno)
+    else:
+        student_data = session.get('student', {})
+        regno = student_data.get('regno', 'unknown')
+        current_state = get_state(regno)
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'report_{timestamp}.csv'
@@ -611,6 +659,7 @@ def stop_exam():
     if regno:
         # Save or update report one last time with current state
         save_or_update_report(regno)
+        remove_student(regno)
         
     # Copy student info to pass to the template before clearing session
     student_info = student_data.copy() if student_data else None
@@ -624,12 +673,15 @@ def stop_exam():
 @app.route('/logout')
 def logout():
     """Clear the session and redirect to login."""
+    student_data = session.get('student', {})
+    regno = student_data.get('regno')
+    if regno:
+        remove_student(regno)
     session.clear()
     return redirect(url_for('index'))
 
 
-# Helper import for serving files safely
-from flask import send_from_directory
+# Helper import moved to top
 
 
 # -------------------------
