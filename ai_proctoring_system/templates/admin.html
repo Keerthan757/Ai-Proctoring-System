@@ -30,19 +30,25 @@
 
 <!-- Main Content -->
 <main class="main-content admin-content" style="max-width: 1200px; margin: 0 auto; padding-top: 80px;">
-    
+
     <!-- Section Title -->
-    <div class="section-header" style="width: 100%; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-size: 20px; font-weight: 600; color: var(--text-primary);">Student Exam Reports & Violations Analysis</h2>
-        <button class="btn-export" onclick="loadReports()" style="width: auto; padding: 8px 16px; margin: 0; font-size: 13px;">🔄 Refresh List</button>
+    <div class="section-header"
+        style="width: 100%; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 20px; font-weight: 600; color: var(--text-primary);">Student Exam Reports & Violations
+            Analysis</h2>
+        <button class="btn-export" onclick="loadReports()"
+            style="width: auto; padding: 8px 16px; margin: 0; font-size: 13px;">🔄 Refresh List</button>
     </div>
 
     <!-- Reports Table Container -->
-    <div class="reports-container" style="width: 100%; background: var(--surface-1); border: 1px solid var(--surface-3); border-radius: var(--radius-card); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 30px;">
+    <div class="reports-container"
+        style="width: 100%; background: var(--surface-1); border: 1px solid var(--surface-3); border-radius: var(--radius-card); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 30px;">
         <div style="overflow-x: auto;">
-            <table class="reports-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <table class="reports-table"
+                style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
                 <thead>
-                    <tr style="background: var(--surface-2); border-bottom: 1px solid var(--surface-3); color: var(--text-secondary); font-weight: 600;">
+                    <tr
+                        style="background: var(--surface-2); border-bottom: 1px solid var(--surface-3); color: var(--text-secondary); font-weight: 600;">
                         <th style="padding: 14px 18px;">Time</th>
                         <th style="padding: 14px 18px;">Student</th>
                         <th style="padding: 14px 18px;">Reg No</th>
@@ -66,20 +72,27 @@
     </div>
 
     <!-- Modal for Screenshots -->
-    <div id="screenshot-modal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 24px;">
-        <div class="modal-content" style="background: var(--surface-1); border: 1px solid var(--surface-3); border-radius: var(--radius-card); max-width: 800px; width: 100%; box-shadow: 0 20px 48px rgba(0,0,0,0.15); display: flex; flex-direction: column; max-height: 85vh; overflow: hidden; animation: fadeUp 0.3s ease;">
+    <div id="screenshot-modal" class="modal"
+        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 24px;">
+        <div class="modal-content"
+            style="background: var(--surface-1); border: 1px solid var(--surface-3); border-radius: var(--radius-card); max-width: 800px; width: 100%; box-shadow: 0 20px 48px rgba(0,0,0,0.15); display: flex; flex-direction: column; max-height: 85vh; overflow: hidden; animation: fadeUp 0.3s ease;">
             <!-- Modal Header -->
-            <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--surface-3); display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-size: 16px; font-weight: 600;" id="modal-student-name">Student Verification Screenshots</h3>
-                <button onclick="closeModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            <div class="modal-header"
+                style="padding: 16px 20px; border-bottom: 1px solid var(--surface-3); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 16px; font-weight: 600;" id="modal-student-name">Student Verification Screenshots
+                </h3>
+                <button onclick="closeModal()"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
             </div>
             <!-- Modal Body -->
             <div class="modal-body" style="padding: 20px; overflow-y: auto; flex: 1;">
-                <div id="screenshots-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+                <div id="screenshots-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
                     <!-- Screenshots loaded via JS -->
                 </div>
-                <div id="no-screenshots" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
-                    📸 No screenshots captured for this student.
+                <div id="no-screenshots"
+                    style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
+                    No screenshots captured for this student.
                 </div>
             </div>
         </div>
@@ -90,11 +103,11 @@
 {% block scripts %}
 <script>
     let seconds = 0;
-    
+
     // Live timer
     setInterval(() => {
         seconds++;
-        const hrs  = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
         const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
         const secs = String(seconds % 60).padStart(2, '0');
         document.getElementById('timer').textContent = hrs + ':' + mins + ':' + secs;
@@ -106,24 +119,24 @@
             const res = await fetch('/admin/reports');
             const reports = await res.json();
             const tbody = document.getElementById('reports-tbody');
-            
+
             if (reports.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="9" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                            📂 No exam reports found.
+                             No exam reports found.
                         </td>
                     </tr>
                 `;
                 return;
             }
-            
+
             tbody.innerHTML = '';
             reports.forEach(report => {
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid var(--surface-3)';
                 tr.style.transition = 'var(--transition)';
-                
+
                 // Cheat status cell decoration
                 let cheatBadge = '';
                 if (report.cheated) {
@@ -134,11 +147,11 @@
                 } else {
                     cheatBadge = `<span style="background: var(--success-glow); color: var(--success); padding: 4px 8px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.2); font-size: 11px;">✅ Normal</span>`;
                 }
-                
+
                 // Screenshot proof action button
                 // Show View Screenshots button if they have look_aways > 20 (or any screenshots exist)
                 const showScreenshotBtn = report.look_aways > 20;
-                const screenshotBtnHtml = showScreenshotBtn 
+                const screenshotBtnHtml = showScreenshotBtn
                     ? `<button onclick="viewScreenshots('${report.regno}', '${report.name}')" style="background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(79, 70, 229, 0.2); padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: var(--transition);">📸 View Proof</button>`
                     : `<span style="color: var(--text-muted); font-size: 11px;">No Violations</span>`;
 
@@ -172,19 +185,19 @@
         const noShots = document.getElementById('no-screenshots');
         grid.innerHTML = 'Loading screenshots...';
         noShots.style.display = 'none';
-        
+
         document.getElementById('screenshot-modal').style.display = 'flex';
 
         try {
             const res = await fetch(`/admin/screenshots/${regno}`);
             const screenshots = await res.json();
-            
+
             grid.innerHTML = '';
             if (screenshots.length === 0) {
                 noShots.style.display = 'block';
                 return;
             }
-            
+
             screenshots.forEach(file => {
                 const card = document.createElement('div');
                 card.style.background = 'var(--surface-2)';
@@ -192,11 +205,11 @@
                 card.style.borderRadius = '12px';
                 card.style.overflow = 'hidden';
                 card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
-                
+
                 // Parse timestamp and status
                 const parts = file.split('_');
                 const status = parts[2] ? parts[2].replace('.jpg', '').replace(/_/g, ' ') : 'Alert';
-                
+
                 card.innerHTML = `
                     <a href="/screenshots/${file}" target="_blank">
                         <img src="/screenshots/${file}" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; cursor: zoom-in;" alt="Alert screenshot">
@@ -218,7 +231,7 @@
     }
 
     // Close modal when clicking outside content
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         const modal = document.getElementById('screenshot-modal');
         if (event.target === modal) {
             closeModal();
