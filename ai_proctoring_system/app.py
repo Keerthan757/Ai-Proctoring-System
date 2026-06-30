@@ -13,9 +13,16 @@ from flask import (
     request, redirect, url_for, send_file,
     session, flash, send_from_directory
 )
-import cv2
-import mediapipe as mp
-import numpy as np
+try:
+    import cv2
+    import mediapipe as mp
+    import numpy as np
+    MEDIAPIPE_AVAILABLE = True
+except ImportError:
+    cv2 = None
+    mp = None
+    np = None
+    MEDIAPIPE_AVAILABLE = False
 import csv
 from datetime import datetime
 import threading
@@ -480,6 +487,8 @@ def admin_panel():
 @app.route('/video')
 def video():
     """Stream the live MJPEG video feed."""
+    if not MEDIAPIPE_AVAILABLE:
+        return 'Server-side video not available (client-side mode)', 503
     student_data = session.get('student', {})
     regno = student_data.get('regno', 'unknown')
     return Response(
@@ -507,6 +516,12 @@ def stats():
 @app.route('/process_frame', methods=['POST'])
 def process_frame():
     """Receive a frame from the client browser, run proctoring analysis, and return stats."""
+    student_data = session.get('student', {})
+    regno = student_data.get('regno', 'unknown')
+
+    if not MEDIAPIPE_AVAILABLE:
+        return jsonify(get_state(regno))
+
     if 'frame' not in request.files:
         return jsonify({'error': 'No frame uploaded'}), 400
 
@@ -515,13 +530,34 @@ def process_frame():
     frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
     if frame is not None:
-        student_data = session.get('student', {})
-        regno = student_data.get('regno', 'unknown')
         analyze_single_frame(frame, regno)
+
+    return jsonify(get_state(regno))
+
+
+@app.route('/update_stats', methods=['POST'])
+def update_stats_from_client():
+    """Receive proctoring stats from client-side face analysis (used when server has no MediaPipe)."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data'}), 400
 
     student_data = session.get('student', {})
     regno = student_data.get('regno', 'unknown')
-    return jsonify(get_state(regno))
+
+    update_state(
+        regno,
+        faces=data.get('faces', 0),
+        blinks=data.get('blinks', 0),
+        focus=data.get('focus', 100),
+        gaze=data.get('gaze', 'Center'),
+        status=data.get('status', 'Waiting'),
+        look_away_count=data.get('look_away_count', 0),
+        cheated=data.get('cheated', False)
+    )
+
+    save_or_update_report(regno)
+    return jsonify({'ok': True})
 
 
 @app.route('/export')
