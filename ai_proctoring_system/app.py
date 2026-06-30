@@ -68,6 +68,7 @@ class CameraManager:
         """Return the FaceMesh instance, creating it lazily."""
         if self._face_mesh is None:
             self._face_mesh = mp.solutions.face_mesh.FaceMesh(
+                static_image_mode=True,
                 refine_landmarks=False,
                 max_num_faces=2,
                 min_detection_confidence=0.5,
@@ -269,13 +270,18 @@ def reset_proctoring_state():
 # -------------------------
 # Video Stream Generator
 # -------------------------
+# Lock for thread-safe access to MediaPipe FaceMesh
+face_mesh_lock = threading.Lock()
+
 def analyze_single_frame(frame, regno='unknown'):
     """Analyze a single video frame for face count, gaze direction, and eye blinks."""
     global blink_counter, closed_frames, focus_frames, total_frames, look_away_count, last_gaze
 
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     face_mesh = cam_manager.get_face_mesh()
-    results = face_mesh.process(rgb)
+    
+    with face_mesh_lock:
+        results = face_mesh.process(rgb)
 
     status = 'No Face'
     gaze = 'Center'
