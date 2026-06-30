@@ -68,7 +68,7 @@ class CameraManager:
         """Return the FaceMesh instance, creating it lazily."""
         if self._face_mesh is None:
             self._face_mesh = mp.solutions.face_mesh.FaceMesh(
-                refine_landmarks=True,
+                refine_landmarks=False,
                 max_num_faces=2,
                 min_detection_confidence=0.5,
                 min_tracking_confidence=0.5

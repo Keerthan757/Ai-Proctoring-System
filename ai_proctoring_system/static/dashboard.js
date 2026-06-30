@@ -13,7 +13,7 @@ navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
         const startCapturing = () => {
             if (!window.captureInterval) {
                 console.log("Starting frame capture...");
-                window.captureInterval = setInterval(captureAndSendFrame, 250); // 4 frames per second is highly efficient
+                window.captureInterval = setInterval(captureAndSendFrame, 500); // 2 frames per second is highly efficient & reduces server CPU/RAM load
             }
         };
 
