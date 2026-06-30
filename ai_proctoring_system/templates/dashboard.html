@@ -76,7 +76,7 @@
 
         <div class="stat-card">
             <div class="stat-left">
-                <div class="stat-icon"></div>
+                <div class="stat-icon">👁️</div>
                 <span class="stat-label">Blinks</span>
             </div>
             <span class="stat-value" id="blinks">0</span>
@@ -85,7 +85,7 @@
         <div class="stat-card focus-card">
             <div class="focus-row">
                 <div class="stat-left">
-                    <div class="stat-icon"></div>
+                    <div class="stat-icon">🎯</div>
                     <span class="stat-label">Focus</span>
                 </div>
                 <span class="stat-value" id="focus">100%</span>
@@ -97,7 +97,7 @@
 
         <div class="stat-card">
             <div class="stat-left">
-                <div class="stat-icon"></div>
+                <div class="stat-icon">👀</div>
                 <span class="stat-label">Gaze</span>
             </div>
             <span class="stat-value" id="gaze">Center</span>
@@ -105,13 +105,14 @@
 
         <div class="stat-card" id="statusCard">
             <div class="stat-left">
-                <div class="stat-icon"></div>
+                <div class="stat-icon">⚡</div>
                 <span class="stat-label">Status</span>
             </div>
             <span class="stat-value" id="status">Waiting</span>
         </div>
 
         <button class="btn-export" onclick="downloadReport()">📄 Export Report</button>
+        <button class="btn-stop" onclick="stopExam()">🛑 Stop Exam</button>
     </div>
 </main>
 {% endblock %}

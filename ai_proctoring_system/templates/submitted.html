@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Exam Submitted — AI Proctoring System{% endblock %}
+
+{% block body %}
+<div class="submitted-container">
+    <div class="submitted-card">
+        <div class="submitted-icon-wrapper">
+            🛡️
+        </div>
+        <h1 class="submitted-title">Exam Stopped Successfully</h1>
+        <p class="submitted-text">Your proctoring session has ended. The final monitoring report and behavior analysis screenshots have been saved and sent to the administrator panel.</p>
+        
+        {% if student %}
+        <div class="submitted-details-box">
+            <div class="submitted-detail-row">
+                <span class="submitted-detail-label">Student Name</span>
+                <span class="submitted-detail-value">{{ student.name }}</span>
+            </div>
+            <div class="submitted-detail-row">
+                <span class="submitted-detail-label">Register Number</span>
+                <span class="submitted-detail-value">{{ student.regno }}</span>
+            </div>
+            <div class="submitted-detail-row">
+                <span class="submitted-detail-label">Subject</span>
+                <span class="submitted-detail-value">{{ student.subject }}</span>
+            </div>
+            <div class="submitted-detail-row">
+                <span class="submitted-detail-label">Submission Time</span>
+                <span class="submitted-detail-value" id="submitted-time"></span>
+            </div>
+        </div>
+        {% endif %}
+        
+        <a href="/logout" class="btn btn-primary" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 14px; text-decoration: none; border-radius: var(--radius-btn); font-weight: 600;">
+            Return to Login
+        </a>
+    </div>
+</div>
+
+<script>
+    // Set dynamic local submission time
+    const timeElem = document.getElementById('submitted-time');
+    if (timeElem) {
+        timeElem.textContent = new Date().toLocaleTimeString();
+    }
+</script>
+{% endblock %}

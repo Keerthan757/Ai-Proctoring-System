@@ -596,6 +596,25 @@ def serve_screenshot(filename):
     return send_from_directory(SCREENSHOTS_DIR, filename)
 
 
+@app.route('/stop_exam')
+def stop_exam():
+    """Handle stopping the exam, writing the final report, and rendering submitted template."""
+    student_data = session.get('student', {})
+    regno = student_data.get('regno')
+    
+    if regno:
+        # Save or update report one last time with current state
+        save_or_update_report(regno)
+        
+    # Copy student info to pass to the template before clearing session
+    student_info = student_data.copy() if student_data else None
+    
+    # Clear session to log student out
+    session.clear()
+    
+    return render_template('submitted.html', student=student_info)
+
+
 @app.route('/logout')
 def logout():
     """Clear the session and redirect to login."""

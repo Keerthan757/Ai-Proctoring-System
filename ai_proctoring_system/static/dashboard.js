@@ -10,11 +10,28 @@ const ctx = canvas.getContext('2d');
 // Request user camera access
 navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
     .then(stream => {
-        video.srcObject = stream;
-        // Start sending frames when video starts playing
-        video.onloadedmetadata = () => {
-            setInterval(captureAndSendFrame, 250); // 4 frames per second is highly efficient
+        const startCapturing = () => {
+            if (!window.captureInterval) {
+                console.log("Starting frame capture...");
+                window.captureInterval = setInterval(captureAndSendFrame, 250); // 4 frames per second is highly efficient
+            }
         };
+
+        // Attach listeners BEFORE assigning srcObject to prevent missing the event
+        video.addEventListener('loadedmetadata', startCapturing);
+        video.addEventListener('play', startCapturing);
+
+        video.srcObject = stream;
+        
+        // Play the video explicitly to guarantee initialization
+        video.play().then(startCapturing).catch(err => {
+            console.warn("Video play promise failed, waiting for metadata:", err);
+        });
+
+        // Fallback: If metadata is already loaded
+        if (video.readyState >= 1) {
+            startCapturing();
+        }
     })
     .catch(err => {
         console.error("Camera access failed:", err);
@@ -99,6 +116,25 @@ function updateTimer() {
  */
 function downloadReport() {
     window.location = '/export';
+}
+
+/**
+ * Stop the exam and redirect to backend stop_exam route.
+ */
+function stopExam() {
+    if (confirm("Are you sure you want to stop the exam? This will finish your session and submit your report.")) {
+        // Stop the frame capture interval
+        if (window.captureInterval) {
+            clearInterval(window.captureInterval);
+            window.captureInterval = null;
+        }
+        // Stop all webcam video tracks
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+        // Redirect to /stop_exam
+        window.location.href = '/stop_exam';
+    }
 }
 
 // Start Timer Interval
