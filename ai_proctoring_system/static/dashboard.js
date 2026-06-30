@@ -77,7 +77,7 @@ navigator.mediaDevices.getUserMedia(constraints)
  * Capture frame from local video, convert to blob, and send to server.
  */
 function captureAndSendFrame() {
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
